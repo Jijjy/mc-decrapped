@@ -36,3 +36,8 @@ Opinionated tweaks to behaviour that stays in the game.
 
 | What | Vanilla 26.3 | This fork | Why | Commit/PR |
 |---|---|---|---|---|
+| Music pools (`minecraft:music.*` sound events) | Every pool mixes C418's Volume Alpha/Beta tracks with later ones (Lena Raine, Kumi Tanioka, Aaron Cherof and others, 1.13 onward), plus the dragon fight's `boss` | Each pool keeps only Volume Alpha (12 overworld tracks) and Volume Beta (menu, creative, Nether, End, credits) tracks. A pool left empty plays another pool: `music.dragon` → `music.end`; deep dark, swamp and underwater → `music.game`. `music.nether.warped_forest` stays empty, as in vanilla. Music discs, other sound events and the `.ogg` files are untouched; `/playsound` of a music event plays the cut pool. The cut list is `CUT_MUSIC` in `crates/horizon-client-render/src/sound_events.rs`. Resource-pack tracks outside that list stay | The 1.0/1.6-era soundtrack | "Music: keep only Volume Alpha and Volume Beta" |
+
+Harness notes: the music pool cut is applied by `SoundRegistry::load_game`; parity probes keep
+`SoundRegistry::load` (vanilla pools), so `sound_event`, `music` and `sound_engine` still prove vanilla
+resolution and mechanics, and the cut is pinned by `load_cuts_music_newer_than_volume_beta`.

@@ -1104,7 +1104,7 @@ impl Audio {
         &self.device_name
     }
     fn with_output(root: &Path, output: bool, target_device: &str) -> Self {
-        let registry = SoundRegistry::load(root);
+        let registry = SoundRegistry::load_game(root);
         if output && registry.is_empty() {
             // The game then plays nothing on a working output (#1035, #1076).
             log::warn!(
@@ -1534,10 +1534,10 @@ impl Audio {
     /// `SoundManager.reload` (resource packs changed): stop every sound, then
     /// read sound events and sound files from the new resource root.
     pub fn reload(&mut self, root: &Path) {
-        self.reload_with(root, SoundRegistry::load(root));
+        self.reload_with(root, SoundRegistry::load_game(root));
     }
     /// [`Self::reload`] with the root's sound events already read
-    /// (`SoundRegistry::load`, which a pack reload runs off the render thread).
+    /// (`SoundRegistry::load_game`, which a pack reload runs off the render thread).
     pub fn reload_with(&mut self, root: &Path, registry: SoundRegistry) {
         self.stop_all();
         self.engine.registry = registry;

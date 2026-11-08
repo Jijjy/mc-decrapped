@@ -16,6 +16,52 @@ use std::{
 pub const EMPTY: &str = "minecraft:empty";
 /// `SoundManager.INTENTIONALLY_EMPTY_SOUND_LOCATION`.
 pub const INTENTIONALLY_EMPTY: &str = "minecraft:intentionally_empty";
+/// Vanilla music tracks newer than C418's Volume Beta (2013), under
+/// `minecraft:music/`: cut from every music pool (docs/divergences.md).
+const CUT_MUSIC: &[&str] = &[
+    "game/a_familiar_room",
+    "game/an_ordinary_day",
+    "game/ancestry",
+    "game/below_and_above",
+    "game/broken_clocks",
+    "game/bromeliad",
+    "game/comforting_memories",
+    "game/crescent_dunes",
+    "game/deeper",
+    "game/ebb",
+    "game/echo_in_the_wind",
+    "game/eld_unknown",
+    "game/end/boss",
+    "game/endless",
+    "game/featherfall",
+    "game/fireflies",
+    "game/floating_dream",
+    "game/home",
+    "game/infinite_amethyst",
+    "game/komorebi",
+    "game/left_to_bloom",
+    "game/lilypad",
+    "game/memories",
+    "game/nether/crimson_forest/chrysopoeia",
+    "game/nether/nether_wastes/rubedo",
+    "game/nether/soulsand_valley/so_below",
+    "game/nightly",
+    "game/one_more_day",
+    "game/os_piano",
+    "game/pokopoko",
+    "game/puzzlebox",
+    "game/shores",
+    "game/stand_tall",
+    "game/swamp/aerie",
+    "game/swamp/firebugs",
+    "game/swamp/labyrinthine",
+    "game/watcher",
+    "game/water/axolotl",
+    "game/water/dragon_fish",
+    "game/water/shuniji",
+    "game/wending",
+    "game/yakusoku",
+];
 
 /// `SampledFloat` as sounds use it: constants and `MultipliedFloats`.
 #[derive(Clone, Debug, PartialEq)]
@@ -284,6 +330,41 @@ impl SoundRegistry {
         }
         registry
     }
+    /// [`Self::load`] as the game plays it: the music pools keep only C418's
+    /// Volume Alpha and Volume Beta tracks (fork divergence). A pool the cut
+    /// empties plays another pool instead (`music.dragon` the End's, the rest
+    /// `music.game`). Parity probes load vanilla's pools with `load`.
+    pub fn load_game(root: &Path) -> Self {
+        let mut registry = Self::load(root);
+        registry.cut_new_music();
+        registry
+    }
+    fn cut_new_music(&mut self) {
+        for (name, event) in &mut self.events {
+            if !name.starts_with("minecraft:music.") {
+                continue;
+            }
+            let before = event.sounds.len();
+            event.sounds.retain(|s| {
+                s.event
+                    || !s
+                        .location
+                        .strip_prefix("minecraft:music/")
+                        .is_some_and(|track| CUT_MUSIC.contains(&track))
+            });
+            if before > 0 && event.sounds.is_empty() {
+                let fallback = if name == "minecraft:music.dragon" {
+                    "minecraft:music.end"
+                } else {
+                    "minecraft:music.game"
+                };
+                event.sounds.push(Sound {
+                    event: true,
+                    ..Sound::file(fallback)
+                });
+            }
+        }
+    }
     /// No sound event at all: the resources hold no `sounds.json` (sounds not
     /// imported from the player's launcher when the game was prepared).
     pub fn is_empty(&self) -> bool {
@@ -439,6 +520,58 @@ impl SoundRegistry {
 mod tests {
     use super::*;
     use horizon_core::random::LegacyRandom;
+
+    #[test]
+    fn load_cuts_music_newer_than_volume_beta() {
+        let root = std::env::temp_dir().join("horizon-sounds-cut-music");
+        let _ = fs::remove_dir_all(&root);
+        let ns = root.join("assets/minecraft");
+        fs::create_dir_all(ns.join("sounds/music/game/end")).unwrap();
+        for f in ["minecraft", "home", "ancestry", "end/boss", "end/the_end"] {
+            fs::write(ns.join(format!("sounds/music/game/{f}.ogg")), b"").unwrap();
+        }
+        fs::write(
+            ns.join("sounds.json"),
+            br#"{
+                "music.game": {"sounds": ["music/game/minecraft", "music/game/home"]},
+                "music.overworld.deep_dark": {"sounds": ["music/game/ancestry"]},
+                "music.dragon": {"sounds": ["music/game/end/boss"]},
+                "music.end": {"sounds": ["music/game/end/the_end"]},
+                "music.nether.warped_forest": {"sounds": []},
+                "ui.jingle": {"sounds": ["music/game/home"]}
+            }"#,
+        )
+        .unwrap();
+        let r = SoundRegistry::load_game(&root);
+        let _ = fs::remove_dir_all(&root);
+        let sounds = |e: &str| -> Vec<(String, bool)> {
+            r.get(e)
+                .unwrap()
+                .sounds
+                .iter()
+                .map(|s| (s.location.clone(), s.event))
+                .collect()
+        };
+        let one = |l: &str, event| vec![(l.to_owned(), event)];
+        assert_eq!(
+            sounds("minecraft:music.game"),
+            one("minecraft:music/game/minecraft", false)
+        );
+        assert_eq!(
+            sounds("minecraft:music.overworld.deep_dark"),
+            one("minecraft:music.game", true)
+        );
+        assert_eq!(
+            sounds("minecraft:music.dragon"),
+            one("minecraft:music.end", true)
+        );
+        // Vanilla's own empty pool stays empty; other events keep the files.
+        assert!(sounds("minecraft:music.nether.warped_forest").is_empty());
+        assert_eq!(
+            sounds("minecraft:ui.jingle"),
+            one("minecraft:music/game/home", false)
+        );
+    }
 
     #[test]
     fn load_keeps_the_sound_files_a_root_holds() {

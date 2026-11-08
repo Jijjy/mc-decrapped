@@ -516,7 +516,7 @@ pub(super) fn stage_pack(
         let panorama = s.spawn(|| horizon_client::gfx::panorama::Faces::load(&root, vanilla_root));
         let small = s.spawn(|| {
             (
-                horizon_client::sound_events::SoundRegistry::load(&root),
+                horizon_client::sound_events::SoundRegistry::load_game(&root),
                 horizon_client::ui::read_metadata(&root),
                 lang::Language::load(&[&root], &lang::code()),
             )
