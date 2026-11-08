@@ -1,8 +1,25 @@
-# Horizon: a map for agents
+# mc-decrapped: a map for agents
 
-Minecraft: Java Edition 26.3 rewritten in Rust (wgpu). Vanilla is the specification wherever it has the
-feature. Read [CONTRIBUTING.md](CONTRIBUTING.md) once; this page tells you where things are.
+A fork of Horizon (Minecraft: Java Edition 26.3 rewritten in Rust, wgpu) being cut back toward the spirit of
+Java Edition 1.0.0: some later blocks, items and features stay, the rest are removed, and some kept behaviour
+gets opinionated tweaks. Code, crate and binary names still say `horizon`; leave them unless a task renames them.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) once; this page tells you where things are.
 Feature → files → harness for the most-changed areas: [docs/architecture.md](docs/architecture.md).
+
+## The fork's rules
+
+- **Vanilla 26.3 is the specification for everything kept.** Anything not listed in
+  [docs/divergences.md](docs/divergences.md) must still behave exactly like 26.3, with the parity harnesses as proof.
+- **Every removal and every tweak goes in [docs/divergences.md](docs/divergences.md), in the same commit.** One row:
+  what (vanilla ids), why, what old 26.3 worlds get instead, and what went with it (recipes, loot, tags,
+  advancements, worldgen, sounds, translations, creative tabs, commands, harnesses). No undocumented divergence.
+- **The user decides what goes.** Do not remove or change content they have not named. Propose candidates;
+  1.0.0 is a yardstick, not a rule (some later additions stay).
+- **Remove completely.** A removed block or item leaves no recipe, loot entry, tag, structure piece, creative tab
+  entry or translation pointing at it. Old saves must still load: map or drop what is gone, never crash.
+- **Registry removals break vanilla multiplayer** for that registry (numeric ids shift). Record it in the entry.
+- Upstream is `github.com/horizon-rust/horizon`; this repo is `github.com/Jijjy/mc-decrapped`. Upstream's
+  community process (issue claims, release batches, labels, Discord, playhorizon.dev) does not apply here.
 
 ## Rules that bite
 
@@ -15,28 +32,13 @@ Feature → files → harness for the most-changed areas: [docs/architecture.md]
   `--game-dir` pointing at it, or they land in the repo root, hidden by `.gitignore`. For the
   launcher, `HORIZON_LAUNCHER_TRASH`, `HORIZON_LAUNCHER_CLIPBOARD` and `HORIZON_LAUNCHER_DESKTOP` pointing into the scratch home. Never write to
   `~/.local/share/{applications,horizon,horizon-launcher}` or `~/.local/bin`.
-- **Mark what an agent posts.** A PR body starts with a line naming the person whose agent opened it and
-  the tool: `> 🤖 Opened by <login>'s AI agent (<tool, model>), not by <login> personally.`, where `<login>`
-  is the GitHub account the PR is opened from (`gh api user --jq .login`). Issues say "Filed by", reviews
-  "Review by". Every comment starts with `🤖 Agent:`. Write only as the person you work for: the lines on
-  this page that name Ludovic are for his own agents (account `ludovic111`), never for anyone else's.
-- **Attribution.** Commits end with a `Co-Authored-By:` line for the agent that wrote them, and PR bodies
-  with that agent's own "Generated with" line. Example, Ludovic's agents (Claude Code on `ludovic111`):
-  first line `> 🤖 Opened by Ludovic's AI agent (Claude), not by Ludovic himself.`, commits
-  `Co-Authored-By: Claude <model> <noreply@anthropic.com>`, last line
-  `🤖 Generated with [Claude Code](https://claude.com/claude-code)`.
+- **Attribution.** Commits end with a `Co-Authored-By:` line for the agent that wrote them, PR bodies with
+  that agent's "Generated with" line. Never post to upstream's repo, issues or PRs unless the user asks.
 - Everything players run is Rust. Python/Java only for dev tools and harness drivers in `tools/`.
 - Horizon-only features follow [docs/design-system.md](docs/design-system.md) and are off by default where
   they would change the vanilla look.
-- Small PRs (< ~500 lines). Labels: `feature` (players get something new), `skip-release` (they see no
-  change), none for a fix. Agents never add `release-now`: the maintainer decides it. Merges ship in batches of 5, or after
-  6 hours ([docs/release-flow.md](docs/release-flow.md)).
-- Contributors first: `gh pr list --state open --search <area>` before you start; never duplicate theirs.
+- Keep commits small and focused: one removal or one tweak per commit where practical.
 - **No hardcoded user-facing strings.** Keep UI translation-ready from the start. In the launcher (`launcher/`), wrap visible text with `tr("...")` or `trf("... {arg} ...", &[("arg", &val)])` from `crate::i18n` instead of raw string literals or `format!`. In the game, use translation keys (`Text::tr`, `lang::get`), never hardcoded English strings.
-- **Claim before you start**: comment `/claim` on the issue (no issue yet: open one, then claim it). An assigned
-  issue is taken, and so is one labelled `in progress` (claimed on Discord): pick another. `/unclaim` when you stop;
-  a claim with no open PR linking it is released after 5 days. The issues free to claim, without reading threads:
-  `gh issue list --search 'is:open no:assignee -label:"in progress" -label:tracker -label:proposal -label:"not claimable" -linked:pr'`
 - **Controllers reach what registers.** Draw controls with a registering helper (`ui::button`, `settings_shell::foot_button`); `graphics_style::button` and `screen_draw::button` only paint, and registering one part of a screen ends its crosshair, so register all of it.
 
 ## Crates
@@ -86,7 +88,9 @@ reads `README.md`, `launcher/links.json`, `docs/api/`, `roadmap/roadmap.json` an
 - Skip tests of trivial constants, derives and getters, or behavior already covered by another test.
 - Avoid pinning implementation details; a harmless refactor should not break a behavior test.
 - Make slow tests faster without removing cases or weakening their coverage.
-- Never delete parity harnesses or tests that pin vanilla behaviour: they are the spec.
+- Never delete parity harnesses or tests that pin vanilla behaviour: they are the spec. Exception: a harness or
+  case for content removed in [docs/divergences.md](docs/divergences.md) goes with it, listed in that entry; a tweak
+  updates its harness to expect the tweaked result and says so in its entry.
 
 ## Build and test fast
 

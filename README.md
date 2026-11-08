@@ -1,28 +1,14 @@
-<p align="center">
-  <img src="docs/media/banner.webp" alt="Horizon: the game you know, rebuilt in Rust" width="100%">
-</p>
+# mc-decrapped
 
-<p align="center">
-  <a href="https://playhorizon.dev"><b>Website</b></a> ·
-  <a href="#download"><b>Download</b></a> ·
-  <a href="https://playhorizon.dev/docs/"><b>Docs</b></a> ·
-  <a href="https://discord.gg/playhorizon"><b>Discord</b></a> ·
-  <a href="ROADMAP.md"><b>Roadmap</b></a> ·
-  <a href="#contributing"><b>Contributing</b></a>
-</p>
+**A fork of [Horizon](https://github.com/horizon-rust/horizon) (Minecraft: Java Edition 26.3 rewritten in Rust), cut back toward Java Edition 1.0.0.**
 
-<p align="center">
-  <img src="https://img.shields.io/badge/vanilla%20parity-100%25-F0795A" alt="Vanilla parity 100%">
-  <a href="#project-status"><img src="https://img.shields.io/badge/player--visible%20gaps-0%20open-F0795A" alt="Player-visible gaps open"></a>
-</p>
+Fifteen years of updates added a lot. This fork keeps the core of survival, building, caves, the Nether and the End, keeps the later blocks, items and features that earn their place, and removes the rest. A few opinionated tweaks change what stays.
 
-# Horizon
+Every removal and every tweak is listed in **[docs/divergences.md](docs/divergences.md)**. Anything not listed there still behaves like vanilla 26.3.
 
-**Minecraft: Java Edition 26.3, rewritten in Rust.** Your worlds, the same rules and the same terrain as the Java game, checked against it by hundreds of differential tests, in one native program with no Java. Free, open source (MIT) and unofficial: you play it with your own copy of Java Edition.
+Unofficial, unaffiliated with Mojang or Microsoft, and played with your own copy of Java Edition 26.3, which supplies the assets.
 
-<p align="center">
-  <img src="docs/media/readme/valley.webp" alt="A river valley with a plains village, savanna hills and a cherry grove, seen from above with a long view distance" width="100%">
-</p>
+The sections below describe Horizon as it stood when the fork was taken; links to playhorizon.dev, Discord and the Horizon launcher are upstream's. The launcher installs upstream Horizon, not this fork: build from source.
 
 ## What works today
 
@@ -116,8 +102,8 @@ Needs Rust 1.90+, Python 3.10+, JDK 25, and on Linux `libasound2-dev libudev-dev
 2. **Server jar:** the 26.3 server jar (`downloads.server.url` in `versions/26.3/26.3.json`), passed once with `--server-jar` or `HORIZON_SERVER_JAR`.
 
 ```sh
-git clone https://github.com/horizon-rust/horizon.git
-cd horizon
+git clone https://github.com/Jijjy/mc-decrapped.git
+cd mc-decrapped
 cargo run --release -p horizon-prepare -- --prepare --server-jar ~/Downloads/server.jar   # needs JDK 25
 cargo run --release -p horizon-prepare -- sounds   # optional: sounds from your launcher install
 cargo run --release -p horizon-client
@@ -127,14 +113,14 @@ Prepared files land in the gitignored `.local/`: never commit or share them. Opt
 
 ## Contributing
 
-Issues and pull requests are welcome: read [CONTRIBUTING.md](CONTRIBUTING.md) (vanilla first, small pull requests), and see [ROADMAP.md](ROADMAP.md) or [playhorizon.dev/hub](https://playhorizon.dev/hub) for what's next. Questions: [Discord](https://discord.gg/playhorizon). Before a pull request, run the self-check and paste its output:
+This is a personal fork. Upstream's process (claims, release batches, Discord) does not apply here. Before a commit, run the self-check:
 
 ```sh
 git config core.hooksPath .githooks
 python3 tools/pr_ready.py
 ```
 
-It runs rustfmt, clippy, the touched crates' tests, the Python tests, the public-tree check and the vanilla harnesses your change affects. Never commit game files, decompiled source or prepared resources.
+Bugs in code this fork has not touched belong [upstream](https://github.com/horizon-rust/horizon).
 
 ## Project status
 
@@ -165,6 +151,6 @@ Scores: 0 (absent), 0.25 (started), 0.5 (playable, major features missing), 0.75
 
 ## Licence
 
-[MIT](LICENSE), for the project's original work; dependencies keep their own licences ([notices](THIRD_PARTY_NOTICES.md)). Horizon is made by [Ludovic Marie](https://lu4ovic.com) ([@ludovic111](https://github.com/ludovic111)) and [its contributors](https://github.com/horizon-rust/horizon/graphs/contributors); support it on [GitHub Sponsors](https://github.com/sponsors/ludovic111).
+[MIT](LICENSE), for the project's original work; dependencies keep their own licences ([notices](THIRD_PARTY_NOTICES.md)). Upstream Horizon is made by [Ludovic Marie](https://lu4ovic.com) ([@ludovic111](https://github.com/ludovic111)) and [its contributors](https://github.com/horizon-rust/horizon/graphs/contributors); support it on [GitHub Sponsors](https://github.com/sponsors/ludovic111).
 
 NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT. Minecraft is a trademark of Mojang Synergies AB; its code and assets belong to Mojang and Microsoft under the [Minecraft EULA](https://www.minecraft.net/en-us/eula).
